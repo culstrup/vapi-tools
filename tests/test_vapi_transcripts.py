@@ -157,9 +157,10 @@ class TestVAPITranscripts(unittest.TestCase):
         
         self.assertIsNone(api_key)
         
+    @patch('sys.platform', return_value='darwin')  # Mock as macOS
     @patch('subprocess.run')
-    def test_paste_from_clipboard(self, mock_run):
-        """Test paste_from_clipboard function"""
+    def test_paste_from_clipboard(self, mock_run, mock_platform):
+        """Test paste_from_clipboard function on macOS"""
         mock_run.return_value = MagicMock(returncode=0)
         
         result = paste_from_clipboard()
@@ -167,15 +168,33 @@ class TestVAPITranscripts(unittest.TestCase):
         self.assertTrue(result)
         mock_run.assert_called_once()
         
+    @patch('sys.platform', return_value='darwin')  # Mock as macOS
     @patch('subprocess.run')
-    def test_paste_from_clipboard_fails(self, mock_run):
-        """Test paste_from_clipboard function when it fails"""
+    def test_paste_from_clipboard_fails(self, mock_run, mock_platform):
+        """Test paste_from_clipboard function when it fails on macOS"""
         mock_run.side_effect = subprocess.CalledProcessError(1, "osascript", stderr="Test error")
         
         result = paste_from_clipboard()
         
         self.assertFalse(result)
         mock_run.assert_called_once()
+        
+    @patch('sys.platform', return_value='linux')  # Mock as Linux
+    def test_paste_from_clipboard_linux(self):
+        """Test paste_from_clipboard function on Linux"""
+        result = paste_from_clipboard()
+        
+        # On Linux we expect success without calling subprocess.run
+        self.assertTrue(result)
+        
+    @patch('sys.platform', return_value='win32')  # Mock as Windows
+    def test_paste_from_clipboard_windows(self):
+        """Test paste_from_clipboard function on Windows without pyautogui"""
+        # This will use the fallback path since pyautogui won't be available
+        result = paste_from_clipboard()
+        
+        # Expect success but warning message
+        self.assertTrue(result)
         
     @patch('os.path.exists')
     @patch('vapi_transcripts.run_with_venv')
