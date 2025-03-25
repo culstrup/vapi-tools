@@ -90,7 +90,7 @@ VAPI_API_KEY=your_vapi_api_key_here
 
 Create a `.env` file in the repository root and add your VAPI API key:
 
-![Environment File Setup](https://github.com/culstrup/vapi-tools/raw/main/screenshots/Screenshot%202025-03-25%20at%2010.31.14%20AM.png)
+![Environment File Setup](https://github.com/culstrup/vapi-tools/raw/main/screenshots/env_setup.png)
 
 *Create a .env file with your VAPI API key*
 
@@ -98,7 +98,7 @@ Create a `.env` file in the repository root and add your VAPI API key:
 
 Open Raycast preferences (Command+,), go to Extensions > Script Commands, and click "Add Directories" to add the project directory:
 
-![Raycast Configuration](https://github.com/culstrup/vapi-tools/raw/main/screenshots/Screenshot%202025-03-25%20at%2010.31.21%20AM.png)
+![Raycast Configuration](https://github.com/culstrup/vapi-tools/raw/main/screenshots/raycast_config.png)
 
 *Add the project directory to Raycast*
 
@@ -106,7 +106,7 @@ Open Raycast preferences (Command+,), go to Extensions > Script Commands, and cl
 
 Run the preload script to make future commands run faster:
 
-![Preload Environment](https://github.com/culstrup/vapi-tools/raw/main/screenshots/Screenshot%202025-03-25%20at%2010.31.24%20AM.png)
+![Preload Environment](https://github.com/culstrup/vapi-tools/raw/main/screenshots/preload_env.png)
 
 *Run the preload_env.sh script for faster performance*
 
@@ -114,7 +114,7 @@ Run the preload script to make future commands run faster:
 
 Go to the VAPI dashboard, open call logs, and filter by the assistant you want:
 
-![VAPI Dashboard](https://github.com/culstrup/vapi-tools/raw/main/screenshots/Screenshot%202025-03-25%20at%2010.31.35%20AM.png)
+![VAPI Dashboard](https://github.com/culstrup/vapi-tools/raw/main/screenshots/vapi_dashboard.png)
 
 *Filter the VAPI dashboard by specific assistant*
 
@@ -122,7 +122,7 @@ Go to the VAPI dashboard, open call logs, and filter by the assistant you want:
 
 Open Raycast, run the "VAPI: Extract Voice Call Transcripts" command, and the transcripts will be copied to your clipboard and pasted where your cursor is:
 
-![Transcript Output](https://github.com/culstrup/vapi-tools/raw/main/screenshots/Screenshot%202025-03-25%20at%2010.31.42%20AM.png)
+![Transcript Output](https://github.com/culstrup/vapi-tools/raw/main/screenshots/transcript_output.png)
 
 *Example of extracted transcripts in a text file*
 
