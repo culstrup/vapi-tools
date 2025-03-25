@@ -395,5 +395,186 @@ class TestVAPITranscripts(unittest.TestCase):
         # Verify the result
         self.assertTrue(result)
 
+# Additional tests to improve coverage
+    @patch('vapi_transcripts.log')
+    def test_run_with_venv(self, mock_log):
+        """Test run_with_venv function"""
+        with patch('subprocess.run') as mock_run:
+            # Configure the mock
+            mock_process = MagicMock()
+            mock_process.returncode = 0
+            mock_process.stdout = "Test output"
+            mock_process.stderr = ""
+            mock_run.return_value = mock_process
+            
+            # Call the function
+            result = run_with_venv("test command")
+            
+            # Verify subprocess.run was called correctly
+            mock_run.assert_called_once()
+            args, kwargs = mock_run.call_args
+            self.assertIn("source", args[0])
+            self.assertIn("test command", args[0])
+            
+            # Verify result
+            self.assertEqual(result, mock_process)
+            
+    @patch('vapi_transcripts.check_venv_setup')
+    @patch('vapi_transcripts.check_api_key')
+    @patch('vapi_transcripts.log')
+    def test_setup_environment_success(self, mock_log, mock_check_api, mock_check_venv):
+        """Test setup_environment function success path"""
+        # Configure mocks
+        mock_check_venv.return_value = True
+        mock_check_api.return_value = "test-api-key"
+        
+        # Call the function
+        from vapi_transcripts import setup_environment
+        success, api_key = setup_environment()
+        
+        # Verify result
+        self.assertTrue(success)
+        self.assertEqual(api_key, "test-api-key")
+        
+    @patch('vapi_transcripts.check_venv_setup')
+    @patch('vapi_transcripts.log')
+    def test_setup_environment_venv_fail(self, mock_log, mock_check_venv):
+        """Test setup_environment function when venv setup fails"""
+        # Configure mock
+        mock_check_venv.return_value = False
+        
+        # Call the function
+        from vapi_transcripts import setup_environment
+        success, api_key = setup_environment()
+        
+        # Verify result
+        self.assertFalse(success)
+        self.assertIsNone(api_key)
+    @patch('os.path.exists')
+    def test_check_api_key_no_env_file(self, mock_exists):
+        """Test check_api_key function when .env file doesn't exist"""
+        mock_exists.return_value = False
+        
+        api_key = check_api_key()
+        
+        self.assertIsNone(api_key)
+        
+    @patch('vapi_transcripts.get_foreground_tab_url')  
+    @patch('vapi_transcripts.find_vapi_tabs')
+    @patch('vapi_transcripts.log')
+    def test_find_assistant_id_foreground(self, mock_log, mock_find_tabs, mock_foreground):
+        """Test find_assistant_id function with foreground tab"""
+        # Configure mocks
+        mock_foreground.return_value = "https://dashboard.vapi.ai/calls?assistantId=test-id-123"
+        
+        # Call function
+        from vapi_transcripts import find_assistant_id
+        result = find_assistant_id()
+        
+        # Verify result
+        self.assertEqual(result, "test-id-123")
+        # Verify find_vapi_tabs wasn't called since foreground tab had an ID
+        mock_find_tabs.assert_not_called()
+        
+    @patch('vapi_transcripts.get_foreground_tab_url')  
+    @patch('vapi_transcripts.find_vapi_tabs')
+    @patch('vapi_transcripts.log')
+    def test_find_assistant_id_no_foreground(self, mock_log, mock_find_tabs, mock_foreground):
+        """Test find_assistant_id function when foreground tab has no assistant ID"""
+        # Configure mocks
+        mock_foreground.return_value = "https://example.com"
+        mock_find_tabs.return_value = [
+            ("https://dashboard.vapi.ai/calls?assistantId=test-id-456", "test-id-456")
+        ]
+        
+        # Call function
+        from vapi_transcripts import find_assistant_id
+        result = find_assistant_id()
+        
+        # Verify result
+        self.assertEqual(result, "test-id-456")
+        # Verify find_vapi_tabs was called since foreground tab had no ID
+        mock_find_tabs.assert_called_once()
+        
+    @patch('vapi_transcripts.get_foreground_tab_url')  
+    @patch('vapi_transcripts.find_vapi_tabs')
+    @patch('vapi_transcripts.log')
+    def test_find_assistant_id_no_tabs(self, mock_log, mock_find_tabs, mock_foreground):
+        """Test find_assistant_id function when no tabs have assistant IDs"""
+        # Configure mocks
+        mock_foreground.return_value = "https://example.com"
+        mock_find_tabs.return_value = []
+        
+        # Call function
+        from vapi_transcripts import find_assistant_id
+        result = find_assistant_id()
+        
+        # Verify result
+        self.assertIsNone(result)
+    
+    @patch('vapi_transcripts.find_assistant_id')
+    @patch('vapi_transcripts.setup_environment')
+    @patch('vapi_transcripts.process_transcripts')
+    @patch('vapi_transcripts.log')
+    @patch('vapi_transcripts.parse_args')
+    def test_main_success(self, mock_parse_args, mock_log, mock_process, mock_setup, mock_find):
+        """Test main function success path"""
+        # Configure mocks
+        mock_parse_args.return_value = MagicMock(assistant_id=None, output=None, min_duration=0, 
+                                                days=None, limit=None, today=False, no_paste=False)
+        mock_setup.return_value = (True, "test-api-key")
+        mock_find.return_value = "test-assistant-id"
+        mock_process.return_value = True
+        
+        # Call main function
+        from vapi_transcripts import main
+        result = main()
+        
+        # Verify mocks were called correctly
+        mock_setup.assert_called_once()
+        mock_find.assert_called_once()
+        mock_process.assert_called_once_with(
+            "test-assistant-id", "test-api-key", 
+            output_file=None, min_duration=0, days_ago=None, 
+            limit=None, today_only=False, no_paste=False
+        )
+        
+        # Verify result
+        self.assertEqual(result, 0)
+    
+    @patch('vapi_transcripts.find_assistant_id')
+    @patch('vapi_transcripts.setup_environment')
+    @patch('vapi_transcripts.log')
+    @patch('vapi_transcripts.parse_args')
+    def test_main_no_assistant_id(self, mock_parse_args, mock_log, mock_setup, mock_find):
+        """Test main function when no assistant ID is found"""
+        # Configure mocks
+        mock_parse_args.return_value = MagicMock(assistant_id=None)
+        mock_setup.return_value = (True, "test-api-key")
+        mock_find.return_value = None
+        
+        # Call main function
+        from vapi_transcripts import main
+        result = main()
+        
+        # Verify result
+        self.assertEqual(result, 1)
+    
+    @patch('vapi_transcripts.log')
+    @patch('vapi_transcripts.parse_args')
+    @patch('vapi_transcripts.setup_environment')
+    def test_main_setup_fails(self, mock_setup, mock_parse_args, mock_log):
+        """Test main function when environment setup fails"""
+        # Configure mocks
+        mock_parse_args.return_value = MagicMock()
+        mock_setup.return_value = (False, None)
+        
+        # Call main function
+        from vapi_transcripts import main
+        result = main()
+        
+        # Verify result
+        self.assertEqual(result, 1)
+
 if __name__ == '__main__':
     unittest.main()
