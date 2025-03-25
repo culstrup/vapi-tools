@@ -29,11 +29,14 @@ This tool is especially useful when you've collected feedback or information usi
 
 ### Prerequisites
 
-- Python 3.6+
-- macOS (for AppleScript functionality)
+- Python 3.9+
+- Operating System:
+  - macOS (full clipboard and paste functionality)
+  - Linux (limited clipboard support, requires xclip or xsel for copying)
+  - Windows (limited clipboard support, requires pywin32 or clip.exe for copying)
 - Google Chrome
 - VAPI API key
-- [Raycast](https://raycast.com) (for Raycast integration)
+- [Raycast](https://raycast.com) (for Raycast integration, macOS only)
 
 ### Installation
 
