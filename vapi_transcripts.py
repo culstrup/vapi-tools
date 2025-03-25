@@ -666,7 +666,7 @@ except Exception as e:
             
         return None
 
-def setup_environment() -> tuple[bool, Optional[str]]:
+def setup_environment() -> Tuple[bool, Optional[str]]:
     """
     Set up the virtual environment and check for API key.
     
