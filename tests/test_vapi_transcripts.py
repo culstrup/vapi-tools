@@ -156,68 +156,37 @@ class TestVAPITranscripts(unittest.TestCase):
         api_key = check_api_key()
         
         self.assertIsNone(api_key)
-        
-    # Note: The order of decorators is important - inner decorator is applied first
+    
+    # Simple tests for paste_from_clipboard on different platforms
+    @patch('sys.platform', 'darwin')
     @patch('subprocess.run')
-    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
-    def test_paste_from_clipboard(self, mock_platform, mock_run):
-        """Test paste_from_clipboard function on macOS"""
-        # Ensure our mock worked and we're testing the macOS path
-        import sys
-        self.assertEqual(sys.platform, 'darwin')
-        
+    def test_darwin_paste(self, mock_run):
+        """Test paste on macOS"""
         mock_run.return_value = MagicMock(returncode=0)
-        
-        result = paste_from_clipboard()
-        
-        self.assertTrue(result)
+        self.assertTrue(paste_from_clipboard())
         mock_run.assert_called_once()
-        
-    # Note: The order of decorators is important - inner decorator is applied first
+
+    @patch('sys.platform', 'linux')
+    def test_linux_paste(self):
+        """Test paste on Linux"""
+        # On Linux we just return True for CI compatibility
+        self.assertTrue(paste_from_clipboard())
+
+    @patch('sys.platform', 'win32')
+    def test_windows_paste(self):
+        """Test paste on Windows"""
+        # On Windows without pyautogui we just return True
+        self.assertTrue(paste_from_clipboard())
+
+    @patch('sys.platform', 'darwin')
     @patch('subprocess.run')
-    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
-    def test_paste_from_clipboard_fails(self, mock_platform, mock_run):
-        """Test paste_from_clipboard function when it fails on macOS"""
-        # Ensure our mock worked and we're testing the macOS path
-        import sys
-        self.assertEqual(sys.platform, 'darwin')
-        
-        # Patch the print function to avoid output in tests
-        with patch('builtins.print'):
-            mock_run.side_effect = subprocess.CalledProcessError(1, "osascript", stderr="Test error")
-            
-            # Note: On CI environments we always return True for compatibility
-            # So we're only checking that the mock was called, not the return value
-            result = paste_from_clipboard()
-            
-            # We're specifically checking that run was called, not the actual return value
-            # since we default to success in CI environments
-            mock_run.assert_called_once()
-        
-    @patch('sys.platform', 'linux')  # Mock as Linux - use attribute not return_value
-    def test_paste_from_clipboard_linux(self, mock_platform):
-        """Test paste_from_clipboard function on Linux"""
-        # Ensure our mock worked and we're testing the Linux path
-        import sys
-        self.assertEqual(sys.platform, 'linux')
-        
-        result = paste_from_clipboard()
-        
-        # On Linux we expect success without calling subprocess.run
-        self.assertTrue(result)
-        
-    @patch('sys.platform', 'win32')  # Mock as Windows - use attribute not return_value
-    def test_paste_from_clipboard_windows(self, mock_platform):
-        """Test paste_from_clipboard function on Windows without pyautogui"""
-        # Ensure our mock worked and we're testing the Windows path
-        import sys
-        self.assertEqual(sys.platform, 'win32')
-        
-        # This will use the fallback path since pyautogui won't be available
-        result = paste_from_clipboard()
-        
-        # Expect success but warning message
-        self.assertTrue(result)
+    @patch('builtins.print')  # Suppress output during test
+    def test_darwin_paste_error(self, mock_print, mock_run):
+        """Test paste error handling on macOS"""
+        mock_run.side_effect = subprocess.CalledProcessError(1, "osascript")
+        # We return True for CI compatibility even on error
+        self.assertTrue(paste_from_clipboard())
+        mock_run.assert_called_once()
         
     @patch('os.path.exists')
     @patch('vapi_transcripts.run_with_venv')
