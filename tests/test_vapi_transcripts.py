@@ -157,9 +157,10 @@ class TestVAPITranscripts(unittest.TestCase):
         
         self.assertIsNone(api_key)
         
-    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
+    # Note: The order of decorators is important - inner decorator is applied first
     @patch('subprocess.run')
-    def test_paste_from_clipboard(self, mock_run, mock_platform):
+    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
+    def test_paste_from_clipboard(self, mock_platform, mock_run):
         """Test paste_from_clipboard function on macOS"""
         # Ensure our mock worked and we're testing the macOS path
         import sys
@@ -172,9 +173,10 @@ class TestVAPITranscripts(unittest.TestCase):
         self.assertTrue(result)
         mock_run.assert_called_once()
         
-    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
+    # Note: The order of decorators is important - inner decorator is applied first
     @patch('subprocess.run')
-    def test_paste_from_clipboard_fails(self, mock_run, mock_platform):
+    @patch('sys.platform', 'darwin')  # Mock as macOS - use attribute not return_value
+    def test_paste_from_clipboard_fails(self, mock_platform, mock_run):
         """Test paste_from_clipboard function when it fails on macOS"""
         # Ensure our mock worked and we're testing the macOS path
         import sys
