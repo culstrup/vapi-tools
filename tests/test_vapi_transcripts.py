@@ -173,10 +173,25 @@ class TestVAPITranscripts(unittest.TestCase):
         self.assertTrue(paste_from_clipboard())
 
     @patch('sys.platform', 'win32')
-    def test_windows_paste(self):
-        """Test paste on Windows"""
-        # On Windows without pyautogui we just return True
-        self.assertTrue(paste_from_clipboard())
+    @patch('builtins.print')  # Suppress output during test
+    def test_windows_paste_no_pyautogui(self, mock_print):
+        """Test paste on Windows without pyautogui"""
+        # Mock the ImportError for pyautogui
+        with patch('builtins.__import__', side_effect=ImportError("No module named 'pyautogui'")):
+            # Without pyautogui, it returns False on Windows
+            self.assertFalse(paste_from_clipboard())
+            
+    @patch('sys.platform', 'win32')
+    def test_windows_paste_with_pyautogui(self):
+        """Test paste on Windows with pyautogui available"""
+        # Mock pyautogui module
+        mock_pyautogui = MagicMock()
+        # Use a context manager to temporarily mock the import of pyautogui
+        with patch.dict('sys.modules', {'pyautogui': mock_pyautogui}):
+            # With pyautogui available, it returns True
+            self.assertTrue(paste_from_clipboard())
+            # Verify that hotkey was called
+            mock_pyautogui.hotkey.assert_called_once_with('ctrl', 'v')
 
     @patch('sys.platform', 'darwin')
     @patch('subprocess.run')
@@ -184,8 +199,8 @@ class TestVAPITranscripts(unittest.TestCase):
     def test_darwin_paste_error(self, mock_print, mock_run):
         """Test paste error handling on macOS"""
         mock_run.side_effect = subprocess.CalledProcessError(1, "osascript")
-        # We return True for CI compatibility even on error
-        self.assertTrue(paste_from_clipboard())
+        # The function returns False when subprocess.run raises an exception
+        self.assertFalse(paste_from_clipboard())
         mock_run.assert_called_once()
         
     @patch('os.path.exists')
