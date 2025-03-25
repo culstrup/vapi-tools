@@ -125,7 +125,7 @@ def get_chrome_tabs() -> List[str]:
         # Now try to get tabs
         script = '''
         tell application "Google Chrome"
-            set tabList to {}
+            set tabList to ""
             set windowCount to count of windows
             if windowCount > 0 then
                 repeat with i from 1 to windowCount
@@ -134,7 +134,12 @@ def get_chrome_tabs() -> List[str]:
                     repeat with j from 1 to tabCount
                         set theTab to tab j of theWindow
                         set theURL to URL of theTab
-                        set tabList to tabList & theURL & "|"
+                        -- Clean URL output to prevent weird characters
+                        if tabList is "" then
+                            set tabList to theURL
+                        else
+                            set tabList to tabList & "|" & theURL
+                        end if
                     end repeat
                 end repeat
             end if
@@ -148,8 +153,8 @@ def get_chrome_tabs() -> List[str]:
         if result.returncode == 0 and result.stdout.strip():
             # Split by the pipe character we added
             tabs = result.stdout.strip().split('|')
-            # Remove any empty entries
-            tabs = [tab for tab in tabs if tab]
+            # Remove any empty entries and clean up each URL
+            tabs = [tab.strip().rstrip(',') for tab in tabs if tab.strip()]
             log(f"Successfully retrieved {len(tabs)} tabs from Chrome")
             return tabs
             
@@ -176,26 +181,35 @@ def extract_assistant_id(url: str) -> Optional[str]:
     # Log the actual URL for debugging
     log(f"Examining URL for assistantId: {url}")
     
-    # Add a special case for the exact URL from the screenshot
-    if "dashboard.vapi.ai/calls?assistantId=0aaa49ab-fe52-4137-aa45-b89841a04046" in url:
-        log("Found the exact URL from the screenshot")
-        return "0aaa49ab-fe52-4137-aa45-b89841a04046"
+    # Clean up URL: remove trailing commas and leading/trailing spaces
+    url = url.strip().rstrip(',')
+    log(f"Cleaned URL: {url}")
+    
+    # No special case hardcoded IDs in the open source version
     
     # Try multiple patterns to extract assistant ID
     patterns = [
-        r'assistantId=([^&]+)',        # Standard query parameter
-        r'/assistant/([^/]+)',         # URL path parameter
-        r'/assistants/([^/]+)',        # Alternative URL path
-        r'calls\?assistantId=([^&]+)'  # Specific format from your screenshot
+        r'assistantId=([^&,\s]+)',     # Standard query parameter (with comma exclusion)
+        r'/assistant/([^/,\s]+)',      # URL path parameter (with comma exclusion)
+        r'/assistants/([^/,\s]+)',     # Alternative URL path (with comma exclusion)
+        r'calls\?assistantId=([^&,\s]+)'  # Specific format (with comma exclusion)
     ]
     
     for pattern in patterns:
         match = re.search(pattern, url)
         if match:
             try:
-                assistant_id = match.group(1)
+                # Clean the extracted ID: strip spaces and commas
+                assistant_id = match.group(1).strip().rstrip(',')
                 log(f"Found assistant ID using pattern {pattern}: {assistant_id}")
-                return assistant_id
+                
+                # Validate the cleaned ID matches UUID format
+                uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                if re.match(uuid_pattern, assistant_id):
+                    log(f"Validated assistant ID as valid UUID: {assistant_id}")
+                    return assistant_id
+                else:
+                    log(f"Extracted ID {assistant_id} does not match UUID format")
             except IndexError:
                 # In case the pattern matches but doesn't have a capture group
                 log(f"Pattern {pattern} matched but no capture group")
@@ -205,7 +219,7 @@ def extract_assistant_id(url: str) -> Optional[str]:
     uuid_pattern = r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'
     match = re.search(uuid_pattern, url)
     if match:
-        assistant_id = match.group(1)
+        assistant_id = match.group(1).strip()
         log(f"Found assistant ID using UUID pattern: {assistant_id}")
         return assistant_id
     
@@ -822,6 +836,15 @@ def process_transcripts(assistant_id: str, api_key: str,
     Returns:
         Boolean indicating success or failure
     """
+    # Additional validation and cleaning for assistant_id to prevent API errors
+    assistant_id = assistant_id.strip().rstrip(',')
+    # Validate UUID format
+    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    if not re.match(uuid_pattern, assistant_id):
+        error_msg = f"Invalid assistant ID format: {assistant_id}"
+        log(error_msg)
+        print(error_msg)
+        return False
     log(f"Processing transcripts for assistant ID: {assistant_id}")
     log(f"Output options: output_file={output_file}, no_paste={no_paste}")
     print(f"Fetching transcripts for assistant ID: {assistant_id}")
