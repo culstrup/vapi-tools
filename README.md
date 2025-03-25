@@ -231,7 +231,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 This tool is featured in a blog post collaboration with VAPI. Read more about how this tool was created and how it can be used for efficient voice assistant data collection and analysis in the VAPI blog post: [Link to be added when published].
 
+## About the Author
+
+This tool was created by [Christian Ulstrup](https://github.com/culstrup), founder of [GSD at Work](https://gsdat.work), a consultancy that helps visionary leaders, founders, and enterprise executives accelerate AI adoption. GSD at Work focuses on helping clients become more productive and energized while serving customers better through the prudent use of AI as a complement to high-quality human labor and interaction.
+
 ## Acknowledgements
 
 - [VAPI](https://vapi.ai) for their excellent voice assistant API and collaboration on the blog post
 - [Raycast](https://raycast.com) for the extensible command platform
+- [GSD at Work](https://gsdat.work) for supporting the development and open-sourcing of this tool
