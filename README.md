@@ -229,7 +229,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Blog Post
 
-This tool is featured in a blog post collaboration with VAPI. Read more about how this tool was created and how it can be used for efficient voice assistant data collection and analysis in the VAPI blog post: [Link to be added when published].
+This tool is featured in a blog post collaboration with VAPI. Read more about how this tool was created and how it can be used for efficient voice assistant data collection and analysis in the VAPI blog post: [Scaling Client Intake Engine with VAPI Voice AI Agents](https://vapi.ai/blog/scaling-client-intake-engine-with-vapi-voice-ai-agents).
 
 ## About the Author
 

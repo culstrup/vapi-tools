@@ -31,7 +31,7 @@ This checklist tracks the steps taken to prepare the VAPI Tools repository for o
 
 ## Remaining Tasks
 
-- [ ] Update the blog post link in README.md when published
+- [x] Update the blog post link in README.md when published - https://vapi.ai/blog/scaling-client-intake-engine-with-vapi-voice-ai-agents
 - [ ] Configure GitHub repository settings (e.g., topics, description) - requires login
 - [ ] Consider adding more detailed documentation for contributors 
 - [ ] Monitor GitHub Actions test results across different Python versions
