@@ -30,8 +30,10 @@ env/
 
 # Temporary files
 _temp_fetch.py
+_temp_fetch_brave.py
 *.log
 vapi_transcript_debug.log
+vapi_transcript_brave_debug.log
 
 # Configuration
 .config/
